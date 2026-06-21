@@ -9,14 +9,14 @@ export const seoConfig: Record<
   ru: {
     title: "devs-for-hire — команда разработчиков | боты, fullstack, Java, React",
     description:
-      "Небольшая команда разработчиков: Telegram-боты, fullstack-приложения, бэкенд на Java и Spring Boot, фронтенд на React. Прямой контакт, честные сроки, без «испорченного телефона».",
+      "Небольшая команда разработчиков: Telegram-боты, fullstack-приложения, бэкенд на Java и Spring Boot, фронтенд на React. Прямой контакт, честные сроки.",
     keywords:
       "разработка на заказ, команда разработчиков, telegram боты, fullstack, Java Spring Boot, React TypeScript, веб-разработка",
   },
   en: {
     title: "devs-for-hire — developer team | bots, fullstack, Java, React",
     description:
-      "A small developer team: Telegram bots, fullstack apps, Java & Spring Boot backends, React frontends. Direct contact, honest timelines, no broken telephone.",
+      "A small developer team: Telegram bots, fullstack apps, Java & Spring Boot backends, React frontends. Direct contact, honest timelines.",
     keywords:
       "software development, developer team, telegram bots, fullstack, Java Spring Boot, React TypeScript, web development",
   },

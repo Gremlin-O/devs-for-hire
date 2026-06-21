@@ -119,12 +119,11 @@ const t = {
     stackTitle: "Наш стек",
     whyLabel: "ПОЧЕМУ МЫ",
     whyTitle: "Небольшая команда — больше внимания",
-    whyBody: "Мы не аутсорсинговая фабрика. Каждый проект ведёт команда разработчиков, которая отвечает за результат. Прямой контакт, честные сроки, без «испорченного телефона».",
+    whyBody: "Не конвейер аутсорса. Проект ведёт одна команда — отвечаем за результат сами. Пишете напрямую разработчикам, сроки обговариваем заранее.",
     whyPoints: [
-      ["Фиксированная цена", "Прозрачная смета заранее — без сюрпризов в счёте."],
-      ["Регулярные демо", "Показываем прогресс на каждой итерации."],
-      ["Поддержка после запуска", "Не исчезаем после деплоя."],
-      ["Честная оценка", "Если задача не наша — скажем об этом."],
+      ["Фиксированная цена", "Смету согласуем до старта — без доплат в конце."],
+      ["Возможность поддержки", "Можем остаться после запуска, если понадобится."],
+      ["Честная оценка", "Если задача не наша — скажем сразу."],
     ],
     viewProjectDetails: "Подробнее о проекте",
     modalChallenge: "ЗАДАЧА",
@@ -151,7 +150,7 @@ const t = {
     },
     contactLabel: "КОНТАКТ",
     contactTitle: "Расскажите о проекте",
-    contactSub: "Опишите задачу и мы выйдем на связь в течение одного рабочего дня.",
+    contactSub: "Опишите задачу — ответим в течение рабочего дня.",
     fieldName: "Имя",
     fieldEmail: "Email",
     fieldMsg: "О проекте",
@@ -161,7 +160,7 @@ const t = {
     submit: "Отправить заявку",
     submitting: "Отправка…",
     sentLabel: "ОТПРАВЛЕНО",
-    sentMsg: "Спасибо! Мы свяжемся с вами в ближайшее время.",
+    sentMsg: "Спасибо, напишем вам скоро.",
     formError: "Не удалось отправить. Напишите на p@x128.ru или в Telegram @devs_for_hire.",
     formNotConfigured: "Форма ещё не настроена. Напишите на p@x128.ru или в Telegram @devs_for_hire.",
   },
@@ -187,12 +186,11 @@ const t = {
     stackTitle: "Our stack",
     whyLabel: "WHY US",
     whyTitle: "Small team — more attention",
-    whyBody: "We are not an outsourcing factory. Every project is led by the developer team accountable for the result. Direct contact, honest timelines, no broken telephone.",
+    whyBody: "Not a conveyor-belt agency. One team owns the project end to end. You talk directly to the developers; timelines are agreed upfront.",
     whyPoints: [
-      ["Fixed pricing", "Transparent quote upfront — no surprises on the invoice."],
-      ["Regular demos", "We show progress at every iteration."],
-      ["Post-launch support", "We don't disappear after deploy."],
-      ["Honest assessment", "If the task isn't ours — we'll say so."],
+      ["Fixed pricing", "Scope and cost agreed before we start."],
+      ["Support available", "We can stay on after launch if you need us."],
+      ["Honest assessment", "If it's not our fit — we'll say so upfront."],
     ],
     viewProjectDetails: "View project details",
     modalChallenge: "CHALLENGE",
@@ -219,7 +217,7 @@ const t = {
     },
     contactLabel: "CONTACT",
     contactTitle: "Tell us about your project",
-    contactSub: "Describe the task and we will get back to you within one business day.",
+    contactSub: "Describe the task — we'll reply within one business day.",
     fieldName: "Name",
     fieldEmail: "Email",
     fieldMsg: "About the project",
@@ -229,7 +227,7 @@ const t = {
     submit: "Send request",
     submitting: "Sending…",
     sentLabel: "SENT",
-    sentMsg: "Thank you! We will be in touch shortly.",
+    sentMsg: "Thanks — we'll get back to you soon.",
     formError: "Could not send. Email p@x128.ru or Telegram @devs_for_hire.",
     formNotConfigured: "Form is not configured yet. Email p@x128.ru or Telegram @devs_for_hire.",
   },
@@ -288,7 +286,17 @@ interface WorkItem {
   gallery?: { src: string; label: string }[];
 }
 
-function BrowserPreview({ src, url, alt }: { src: string; url?: string; alt: string }) {
+function BrowserPreview({
+  src,
+  url,
+  alt,
+  children,
+}: {
+  src?: string;
+  url?: string;
+  alt: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="rounded-lg border border-border overflow-hidden shadow-2xl shadow-black/50">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-card">
@@ -306,8 +314,10 @@ function BrowserPreview({ src, url, alt }: { src: string; url?: string; alt: str
           </span>
         </div>
       </div>
-      <div className="bg-[#f4f4f5]">
-        <img src={src} alt={alt} className="w-full object-cover object-top" />
+      <div className="bg-[#f4f4f5] relative w-full" style={{ aspectRatio: "16 / 10" }}>
+        {children ?? (
+          <img src={src!} alt={alt} className="absolute inset-0 w-full h-full object-cover object-top" />
+        )}
       </div>
     </div>
   );
@@ -334,6 +344,13 @@ function ScreenshotCarousel({
   const slide = slides[index];
   const hasMultiple = slides.length > 1;
 
+  useEffect(() => {
+    slides.forEach(({ src }) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [slides]);
+
   function goPrev(e: React.MouseEvent) {
     e.stopPropagation();
     onClickStop?.(e);
@@ -354,7 +371,19 @@ function ScreenshotCarousel({
 
   return (
     <div>
-      <BrowserPreview src={slide.src} url={url} alt={alt} />
+      <BrowserPreview url={url} alt={alt}>
+        {slides.map((s, i) => (
+          <img
+            key={s.src}
+            src={s.src}
+            alt={i === index ? `${alt}: ${s.label}` : ""}
+            aria-hidden={i !== index}
+            className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-200 ${i === index ? "opacity-100" : "opacity-0"}`}
+            loading="eager"
+            decoding="async"
+          />
+        ))}
+      </BrowserPreview>
       {hasMultiple && (
         <div className="mt-3 flex flex-col gap-2" onClick={onClickStop}>
           <div className="flex items-center justify-between gap-3">
@@ -687,6 +716,16 @@ export default function App() {
       return works.find((w) => w.img === current.img) ?? null;
     });
   }, [lang, works]);
+
+  useEffect(() => {
+    works.forEach((work) => {
+      const sources = work.gallery?.map((g) => g.src) ?? [work.img];
+      sources.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+      });
+    });
+  }, [works]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -1080,11 +1119,13 @@ export default function App() {
           <Dialog.Content
             className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
             style={{ outline: "none" }}
+            onClick={() => setSelectedWork(null)}
           >
             {selectedWork && (
               <div
                 className="relative bg-background border border-border w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col"
                 style={{ scrollbarWidth: "none" }}
+                onClick={(e) => e.stopPropagation()}
               >
                 {/* Hero image */}
                 <div className="relative shrink-0">
