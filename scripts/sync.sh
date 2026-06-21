@@ -1,0 +1,1 @@
+rsync -az --exclude .env --exclude node_modules --exclude scripts --exclude dist . root@212.193.51.63:/root/projects/dev-for-hire/
