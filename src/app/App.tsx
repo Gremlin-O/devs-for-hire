@@ -29,6 +29,29 @@ import litteria12 from "../assets/litteria-12-editor.jpeg";
 
 type Lang = "ru" | "en";
 
+const TELEGRAM_URL = "https://t.me/devs_for_hire";
+const TELEGRAM_HANDLE = "@devs_for_hire";
+
+function TelegramIcon({ size = 16, className }: { size?: number; className?: string }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center ${className ?? ""}`}
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox="-1 -1 26 26"
+        fill="currentColor"
+        className="block"
+        aria-hidden
+      >
+        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+      </svg>
+    </span>
+  );
+}
+
 const litteriaGallery: Record<Lang, { src: string; label: string }[]> = {
   ru: [
     { src: litteria01, label: "Главная" },
@@ -108,6 +131,7 @@ const t = {
     ctaPrimary: "Обсудить проект",
     ctaSecondary: "Наши услуги",
     ctaAnchor: "контакт",
+    heroTelegramPrefix: "Или напишите в Telegram —",
     servicesLabel: "УСЛУГИ",
     servicesTitle: "Что мы делаем",
     worksLabel: "ПРИМЕРЫ РАБОТ",
@@ -121,11 +145,12 @@ const t = {
     whyTitle: "Небольшая команда — больше внимания",
     whyBody: "Не конвейер аутсорса. Проект ведёт одна команда — отвечаем за результат сами. Пишете напрямую разработчикам, сроки обговариваем заранее.",
     whyPoints: [
-      ["Фиксированная цена", "Смету согласуем до старта — без доплат в конце."],
+      ["Оплата за результат", "Без предоплаты — начинаем сразу, платите, когда результат готов."],
       ["Возможность поддержки", "Можем остаться после запуска, если понадобится."],
       ["Честная оценка", "Если задача не наша — скажем сразу."],
     ],
     viewProjectDetails: "Подробнее о проекте",
+    previewSlide: "Обзор",
     modalChallenge: "ЗАДАЧА",
     modalSolution: "РЕШЕНИЕ",
     modalResults: "РЕЗУЛЬТАТЫ",
@@ -175,6 +200,7 @@ const t = {
     ctaPrimary: "Discuss a project",
     ctaSecondary: "Our services",
     ctaAnchor: "contact",
+    heroTelegramPrefix: "Or message us on Telegram —",
     servicesLabel: "SERVICES",
     servicesTitle: "What we do",
     worksLabel: "WORK EXAMPLES",
@@ -188,11 +214,12 @@ const t = {
     whyTitle: "Small team — more attention",
     whyBody: "Not a conveyor-belt agency. One team owns the project end to end. You talk directly to the developers; timelines are agreed upfront.",
     whyPoints: [
-      ["Fixed pricing", "Scope and cost agreed before we start."],
+      ["Pay for results", "No prepayment — we start right away, you pay when the work is done."],
       ["Support available", "We can stay on after launch if you need us."],
       ["Honest assessment", "If it's not our fit — we'll say so upfront."],
     ],
     viewProjectDetails: "View project details",
+    previewSlide: "Overview",
     modalChallenge: "CHALLENGE",
     modalSolution: "SOLUTION",
     modalResults: "RESULTS",
@@ -284,6 +311,7 @@ interface WorkItem {
   previewUrl?: string;
   badge?: string;
   gallery?: { src: string; label: string }[];
+  accent?: string;
 }
 
 function BrowserPreview({
@@ -291,23 +319,31 @@ function BrowserPreview({
   url,
   alt,
   children,
+  featured,
 }: {
   src?: string;
   url?: string;
   alt: string;
   children?: React.ReactNode;
+  featured?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border overflow-hidden shadow-2xl shadow-black/50">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-card">
+    <div
+      className={`rounded-xl overflow-hidden shadow-2xl transition-shadow duration-300 ${
+        featured
+          ? "border border-primary/30 shadow-primary/15 ring-1 ring-primary/20"
+          : "border border-border shadow-black/50"
+      }`}
+    >
+      <div className={`flex items-center gap-2 px-4 py-2.5 border-b ${featured ? "border-primary/20 bg-card/90" : "border-border bg-card"}`}>
         <div className="flex gap-1.5 shrink-0">
           <span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
           <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground/30" />
-          <span className="w-2.5 h-2.5 rounded-full bg-primary/50" />
+          <span className="w-2.5 h-2.5 rounded-full bg-primary/70" />
         </div>
         <div className="flex-1 h-7 rounded-md bg-muted/50 flex items-center justify-center px-3 min-w-0">
           <span
-            className="text-muted-foreground truncate"
+            className={`truncate ${featured ? "text-primary/90" : "text-muted-foreground"}`}
             style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem" }}
           >
             {url ?? "app.example.com"}
@@ -323,6 +359,68 @@ function BrowserPreview({
   );
 }
 
+function ProjectPreviewSlide({
+  title,
+  url,
+  tags,
+  accent,
+  thumb,
+}: {
+  title: string;
+  url?: string;
+  tags: string[];
+  accent: string;
+  thumb?: string;
+}) {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {thumb && (
+        <img
+          src={thumb}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover object-top scale-110 blur-md opacity-30"
+        />
+      )}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, ${accent}55 0%, #0c0c0c 45%, ${accent}33 100%)`,
+        }}
+      />
+      <div
+        className="absolute -top-1/4 -right-1/4 w-2/3 h-2/3 rounded-full blur-3xl opacity-40"
+        style={{ background: accent }}
+      />
+      <div className="relative z-10 flex flex-col justify-center items-center h-full px-8 py-6 text-center gap-4">
+        <p
+          className="text-primary/90 uppercase tracking-widest"
+          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem" }}
+        >
+          {url}
+        </p>
+        <h4
+          className="text-foreground leading-tight"
+          style={{ fontSize: "clamp(1.5rem, 4vw, 2.2rem)", fontWeight: 600, letterSpacing: "-0.03em" }}
+        >
+          {title}
+        </h4>
+        <div className="flex flex-wrap justify-center gap-2 max-w-md">
+          {tags.slice(0, 4).map((tag) => (
+            <span
+              key={tag}
+              className="border border-primary/40 bg-background/40 text-foreground/90 px-2.5 py-1 backdrop-blur-sm"
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem" }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScreenshotCarousel({
   slides,
   url,
@@ -331,6 +429,9 @@ function ScreenshotCarousel({
   ariaPrev,
   ariaNext,
   ariaScreenshot,
+  preview,
+  previewLabel,
+  featured,
 }: {
   slides: { src: string; label: string }[];
   url?: string;
@@ -339,28 +440,37 @@ function ScreenshotCarousel({
   ariaPrev: string;
   ariaNext: string;
   ariaScreenshot: string;
+  preview?: { title: string; tags: string[]; accent: string; thumb?: string };
+  previewLabel?: string;
+  featured?: boolean;
 }) {
   const [index, setIndex] = useState(0);
-  const slide = slides[index];
-  const hasMultiple = slides.length > 1;
+  const slideCount = slides.length + (preview ? 1 : 0);
+  const hasMultiple = slideCount > 1;
+
+  const currentLabel = preview && index === 0 ? (previewLabel ?? "Overview") : slides[index - (preview ? 1 : 0)]?.label ?? "";
 
   useEffect(() => {
     slides.forEach(({ src }) => {
       const img = new Image();
       img.src = src;
     });
-  }, [slides]);
+    if (preview?.thumb) {
+      const img = new Image();
+      img.src = preview.thumb;
+    }
+  }, [slides, preview]);
 
   function goPrev(e: React.MouseEvent) {
     e.stopPropagation();
     onClickStop?.(e);
-    setIndex((i) => (i - 1 + slides.length) % slides.length);
+    setIndex((i) => (i - 1 + slideCount) % slideCount);
   }
 
   function goNext(e: React.MouseEvent) {
     e.stopPropagation();
     onClickStop?.(e);
-    setIndex((i) => (i + 1) % slides.length);
+    setIndex((i) => (i + 1) % slideCount);
   }
 
   function goTo(i: number, e: React.MouseEvent) {
@@ -371,18 +481,34 @@ function ScreenshotCarousel({
 
   return (
     <div>
-      <BrowserPreview url={url} alt={alt}>
-        {slides.map((s, i) => (
-          <img
-            key={s.src}
-            src={s.src}
-            alt={i === index ? `${alt}: ${s.label}` : ""}
-            aria-hidden={i !== index}
-            className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-200 ${i === index ? "opacity-100" : "opacity-0"}`}
-            loading="eager"
-            decoding="async"
-          />
-        ))}
+      <BrowserPreview url={url} alt={alt} featured={featured}>
+        {preview && (
+          <div
+            className={`absolute inset-0 transition-opacity duration-200 ${index === 0 ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+          >
+            <ProjectPreviewSlide
+              title={preview.title}
+              url={url}
+              tags={preview.tags}
+              accent={preview.accent}
+              thumb={preview.thumb}
+            />
+          </div>
+        )}
+        {slides.map((s, i) => {
+          const slideIndex = i + (preview ? 1 : 0);
+          return (
+            <img
+              key={s.src}
+              src={s.src}
+              alt={slideIndex === index ? `${alt}: ${s.label}` : ""}
+              aria-hidden={slideIndex !== index}
+              className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-200 ${slideIndex === index ? "opacity-100" : "opacity-0"}`}
+              loading="eager"
+              decoding="async"
+            />
+          );
+        })}
       </BrowserPreview>
       {hasMultiple && (
         <div className="mt-3 flex flex-col gap-2" onClick={onClickStop}>
@@ -399,7 +525,7 @@ function ScreenshotCarousel({
               className="text-muted-foreground text-center truncate"
               style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem" }}
             >
-              {slide.label} · {index + 1}/{slides.length}
+              {currentLabel} · {index + 1}/{slideCount}
             </span>
             <button
               type="button"
@@ -411,7 +537,7 @@ function ScreenshotCarousel({
             </button>
           </div>
           <div className="flex justify-center gap-1.5">
-            {slides.map((_, i) => (
+            {Array.from({ length: slideCount }, (_, i) => (
               <button
                 key={i}
                 type="button"
@@ -469,6 +595,7 @@ function FeaturedWorkCard({
   work,
   badge,
   viewProjectDetails,
+  previewLabel,
   carouselAria,
   reversed,
   onClick,
@@ -476,24 +603,33 @@ function FeaturedWorkCard({
   work: WorkItem;
   badge?: string;
   viewProjectDetails: string;
+  previewLabel: string;
   carouselAria: { prev: string; next: string; screenshot: string };
   reversed?: boolean;
   onClick: () => void;
 }) {
+  const accent = work.accent ?? "#4ade80";
+  const slides = work.gallery ?? [{ src: work.img, label: work.title }];
+
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
-      className="group text-left border border-border hover:border-primary/40 transition-colors w-full cursor-pointer"
+      className="group text-left w-full cursor-pointer rounded-xl border border-primary/25 bg-gradient-to-br from-card via-background to-card overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_48px_-16px_rgba(74,222,128,0.45)]"
+      style={{ boxShadow: `0 0 0 1px ${accent}18 inset` }}
     >
-      <div className="bg-background p-6 md:p-10 group-hover:bg-card transition-colors">
+      <div
+        className="h-1 w-full opacity-80 group-hover:opacity-100 transition-opacity"
+        style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+      />
+      <div className="p-6 md:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div className={`flex flex-col gap-5 order-2 ${reversed ? "lg:order-2" : "lg:order-1"}`}>
             {badge && (
               <span
-                className="self-start text-primary border border-primary px-2.5 py-1"
+                className="self-start text-primary border border-primary/60 bg-primary/10 px-2.5 py-1"
                 style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", letterSpacing: "0.1em" }}
               >
                 {badge}
@@ -506,6 +642,17 @@ function FeaturedWorkCard({
               <p className="text-muted-foreground" style={{ fontSize: "0.95rem", lineHeight: 1.75 }}>
                 {work.desc}
               </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {work.tags.slice(0, 5).map((tag) => (
+                <span
+                  key={tag}
+                  className="border border-primary/30 bg-primary/5 text-foreground/90 px-2.5 py-1"
+                  style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem" }}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
             {work.links && work.links.length > 0 && (
               <div className="flex flex-wrap gap-3">
@@ -524,18 +671,26 @@ function FeaturedWorkCard({
                 ))}
               </div>
             )}
-            <span className="inline-flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors" style={{ fontSize: "0.85rem" }}>
+            <span className="inline-flex items-center gap-2 text-primary/80 group-hover:text-primary transition-colors" style={{ fontSize: "0.85rem", fontWeight: 500 }}>
               {viewProjectDetails} <ArrowRight size={14} />
             </span>
           </div>
           <div
-            className={`order-1 group-hover:scale-[1.01] transition-transform duration-500 ${reversed ? "lg:order-1" : "lg:order-2"}`}
+            className={`order-1 group-hover:scale-[1.015] transition-transform duration-500 ${reversed ? "lg:order-1" : "lg:order-2"}`}
             onClick={(e) => e.stopPropagation()}
           >
             <ScreenshotCarousel
-              slides={work.gallery ?? [{ src: work.img, label: work.title }]}
+              slides={slides}
               url={work.previewUrl}
               alt={work.title}
+              featured
+              previewLabel={previewLabel}
+              preview={{
+                title: work.title,
+                tags: work.tags,
+                accent,
+                thumb: work.img,
+              }}
               ariaPrev={carouselAria.prev}
               ariaNext={carouselAria.next}
               ariaScreenshot={carouselAria.screenshot}
@@ -570,6 +725,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       featured: true,
       badge: "Избранный проект",
       previewUrl: "anon-vote.ru",
+      accent: "#4ade80",
       gallery: anonVoteGallery.ru,
     },
     {
@@ -588,6 +744,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       ],
       featured: true,
       previewUrl: "litteria.app",
+      accent: "#a78bfa",
       gallery: litteriaGallery.ru,
     },
     {
@@ -606,6 +763,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       ],
       featured: true,
       previewUrl: "news-parser.app",
+      accent: "#22d3ee",
       gallery: newsParserGallery.ru,
     },
   ],
@@ -631,6 +789,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       featured: true,
       badge: "Featured project",
       previewUrl: "anon-vote.ru",
+      accent: "#4ade80",
       gallery: anonVoteGallery.en,
     },
     {
@@ -649,6 +808,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       ],
       featured: true,
       previewUrl: "litteria.app",
+      accent: "#a78bfa",
       gallery: litteriaGallery.en,
     },
     {
@@ -667,6 +827,7 @@ const worksData: Record<Lang, WorkItem[]> = {
       ],
       featured: true,
       previewUrl: "news-parser.app",
+      accent: "#22d3ee",
       gallery: newsParserGallery.en,
     },
   ],
@@ -772,6 +933,17 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Telegram ${TELEGRAM_HANDLE}`}
+              className="hidden sm:inline-flex items-center gap-2 border border-primary/35 bg-primary/8 text-primary px-3 py-2 hover:bg-primary/15 transition-colors leading-none"
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem" }}
+            >
+              <TelegramIcon size={16} />
+              <span className="hidden md:inline">{TELEGRAM_HANDLE}</span>
+            </a>
             {/* Lang switcher */}
             <div className="flex items-center border border-border overflow-hidden" style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem" }}>
               {(["ru", "en"] as Lang[]).map((l) => (
@@ -803,6 +975,18 @@ export default function App() {
                 {item}
               </a>
             ))}
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Telegram ${TELEGRAM_HANDLE}`}
+              className="inline-flex items-center gap-2 text-primary border border-primary/35 bg-primary/8 px-3 py-2"
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.85rem" }}
+              onClick={() => setMenuOpen(false)}
+            >
+              <TelegramIcon size={16} />
+              {TELEGRAM_HANDLE}
+            </a>
           </div>
         )}
       </nav>
@@ -841,6 +1025,19 @@ export default function App() {
               {T.ctaSecondary}
             </a>
           </div>
+          <p className="mt-8 text-muted-foreground" style={{ fontSize: "0.95rem", lineHeight: 1.6 }}>
+            {T.heroTelegramPrefix}{" "}
+            <a
+              href={TELEGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-primary font-medium hover:underline underline-offset-4"
+              style={{ fontFamily: "'DM Mono', monospace" }}
+            >
+              {TELEGRAM_HANDLE}
+              <ExternalLink size={14} className="opacity-70" />
+            </a>
+          </p>
         </div>
       </section>
 
@@ -875,7 +1072,7 @@ export default function App() {
       </section>
 
       {/* Works */}
-      <section id={T.navAnchors[1]} className="px-6 py-24 border-t border-border">
+      <section id={T.navAnchors[1]} className="px-6 py-24 border-t border-border bg-gradient-to-b from-primary/[0.04] via-background to-background">
         <div className="max-w-6xl mx-auto">
           <div className="mb-12">
             <p className="text-primary mb-3" style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", letterSpacing: "0.12em" }}>
@@ -904,13 +1101,14 @@ export default function App() {
           </div>
           )}
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-8">
             {featuredWorks.map((work, index) => (
               <FeaturedWorkCard
                 key={work.title}
                 work={work}
                 badge={work.badge}
                 viewProjectDetails={T.viewProjectDetails}
+                previewLabel={T.previewSlide}
                 carouselAria={carouselAria}
                 reversed={index % 2 === 1}
                 onClick={() => setSelectedWork(work)}
@@ -1024,8 +1222,8 @@ export default function App() {
               <a href="mailto:p@x128.ru" className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors" style={{ fontSize: "0.9rem", fontFamily: "'DM Mono', monospace" }}>
                 <span className="text-primary">→</span> p@x128.ru
               </a>
-              <a href="https://t.me/devs_for_hire" className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors" style={{ fontSize: "0.9rem", fontFamily: "'DM Mono', monospace" }}>
-                <span className="text-primary">→</span> @devs_for_hire
+              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors" style={{ fontSize: "0.9rem", fontFamily: "'DM Mono', monospace" }}>
+                <span className="text-primary">→</span> {TELEGRAM_HANDLE}
               </a>
             </div>
           </div>
@@ -1136,6 +1334,14 @@ export default function App() {
                         slides={selectedWork.gallery ?? [{ src: selectedWork.img, label: selectedWork.title }]}
                         url={selectedWork.previewUrl}
                         alt={selectedWork.title}
+                        featured
+                        previewLabel={T.previewSlide}
+                        preview={{
+                          title: selectedWork.title,
+                          tags: selectedWork.tags,
+                          accent: selectedWork.accent ?? "#4ade80",
+                          thumb: selectedWork.img,
+                        }}
                         ariaPrev={carouselAria.prev}
                         ariaNext={carouselAria.next}
                         ariaScreenshot={carouselAria.screenshot}
