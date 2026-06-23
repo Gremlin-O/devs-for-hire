@@ -1,1 +1,3 @@
-rsync -az ./dist/ root@212.193.51.63:/var/www/html/devs-for-hire
+npm i;
+npm run build;
+rsync -az ./dist/ root@212.193.51.63:/var/www/html/devs-for-hire;
