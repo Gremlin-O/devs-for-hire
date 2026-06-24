@@ -1,0 +1,24 @@
+{
+  "name": "devs-for-hire",
+  "short_name": "devs-for-hire",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/Logo-blue.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
+  "display": "standalone"
+}
