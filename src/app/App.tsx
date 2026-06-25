@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Bot, Layers, Server, Monitor, Globe, AppWindow, ArrowRight, Menu, X, ChevronRight, ChevronLeft, ExternalLink, Clock, Users, CheckCircle2, Loader2 } from "lucide-react";
 import { Seo } from "./Seo";
 import { submitContactForm } from "../lib/submitContact";
@@ -13,7 +13,6 @@ import parser03 from "../assets/parser-03-monitoring.png";
 import parser04 from "../assets/parser-04-filter.png";
 import parser05 from "../assets/parser-05-formatting.png";
 import parser06 from "../assets/parser-06-sites.png";
-import parser07 from "../assets/parser-07-telegram.png";
 import litteria01 from "../assets/litteria-01-home.jpeg";
 import litteria02 from "../assets/litteria-02-book.png";
 import litteria03 from "../assets/litteria-03-auth-modal.jpeg";
@@ -23,11 +22,60 @@ import litteria06 from "../assets/litteria-06-reader.png";
 import litteria07 from "../assets/litteria-07-filters.png";
 import litteria08 from "../assets/litteria-08-search.png";
 import litteria09 from "../assets/litteria-09-my-books.png";
-import litteria10 from "../assets/litteria-10-edit.png";
-import litteria11 from "../assets/litteria-11-book-info.png";
-import litteria12 from "../assets/litteria-12-editor.jpeg";
 
 type Lang = "ru" | "en";
+
+const slideAspectCache = new Map<string, number>();
+
+function measureSlideAspect(src: string) {
+  if (slideAspectCache.has(src)) return;
+  const img = new Image();
+  img.onload = () => slideAspectCache.set(src, img.naturalWidth / img.naturalHeight);
+  img.onerror = () => slideAspectCache.set(src, 16 / 10);
+  img.src = src;
+}
+
+function minCachedAspect(slides: { src: string }[], fallback = 16 / 10) {
+  const ratios = slides.map((s) => slideAspectCache.get(s.src)).filter((r): r is number => r != null);
+  return ratios.length ? Math.min(...ratios) : fallback;
+}
+
+function useGalleryAspect(slides: { src: string }[]) {
+  const srcKey = useMemo(() => slides.map((s) => s.src).join("|"), [slides]);
+  const [, setVersion] = useState(0);
+
+  useEffect(() => {
+    const pending = slides.filter((s) => !slideAspectCache.has(s.src));
+    if (pending.length === 0) return;
+
+    let cancelled = false;
+    let left = pending.length;
+
+    pending.forEach(({ src }) => {
+      const img = new Image();
+      const done = () => {
+        if (cancelled) return;
+        left -= 1;
+        if (left === 0) setVersion((v) => v + 1);
+      };
+      img.onload = () => {
+        slideAspectCache.set(src, img.naturalWidth / img.naturalHeight);
+        done();
+      };
+      img.onerror = () => {
+        slideAspectCache.set(src, 16 / 10);
+        done();
+      };
+      img.src = src;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [srcKey, slides]);
+
+  return minCachedAspect(slides);
+}
 
 const TELEGRAM_URL = "https://t.me/devs_for_hire";
 const TELEGRAM_HANDLE = "@devs_for_hire";
@@ -63,9 +111,6 @@ const litteriaGallery: Record<Lang, { src: string; label: string }[]> = {
     { src: litteria07, label: "Фильтры" },
     { src: litteria08, label: "Результаты поиска" },
     { src: litteria09, label: "Книги автора" },
-    { src: litteria10, label: "Редактирование" },
-    { src: litteria11, label: "Информация о книге" },
-    { src: litteria12, label: "Редактор текста" },
   ],
   en: [
     { src: litteria01, label: "Home" },
@@ -77,9 +122,6 @@ const litteriaGallery: Record<Lang, { src: string; label: string }[]> = {
     { src: litteria07, label: "Filters" },
     { src: litteria08, label: "Search results" },
     { src: litteria09, label: "Author's books" },
-    { src: litteria10, label: "Editing" },
-    { src: litteria11, label: "Book info" },
-    { src: litteria12, label: "Text editor" },
   ],
 };
 
@@ -91,7 +133,6 @@ const newsParserGallery: Record<Lang, { src: string; label: string }[]> = {
     { src: parser04, label: "Фильтры" },
     { src: parser05, label: "Форматирование" },
     { src: parser06, label: "Подключённые сайты" },
-    { src: parser07, label: "Telegram-уведомления" },
   ],
   en: [
     { src: parser01, label: "Site settings" },
@@ -100,7 +141,6 @@ const newsParserGallery: Record<Lang, { src: string; label: string }[]> = {
     { src: parser04, label: "Filters" },
     { src: parser05, label: "Formatting" },
     { src: parser06, label: "Connected sites" },
-    { src: parser07, label: "Telegram notifications" },
   ],
 };
 
@@ -320,12 +360,14 @@ function BrowserPreview({
   alt,
   children,
   featured,
+  contentAspectRatio = 16 / 10,
 }: {
   src?: string;
   url?: string;
   alt: string;
   children?: React.ReactNode;
   featured?: boolean;
+  contentAspectRatio?: number;
 }) {
   return (
     <div
@@ -350,9 +392,14 @@ function BrowserPreview({
           </span>
         </div>
       </div>
-      <div className="bg-[#f4f4f5] relative w-full" style={{ aspectRatio: "16 / 10" }}>
+      <div
+        className="bg-[#f4f4f5] relative w-full"
+        style={{ aspectRatio: `${contentAspectRatio} / 1` }}
+      >
         {children ?? (
-          <img src={src!} alt={alt} className="absolute inset-0 w-full h-full object-cover object-top" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img src={src!} alt={alt} className="block max-w-full max-h-full w-auto h-auto" draggable={false} />
+          </div>
         )}
       </div>
     </div>
@@ -447,18 +494,13 @@ function ScreenshotCarousel({
   const [index, setIndex] = useState(0);
   const slideCount = slides.length + (preview ? 1 : 0);
   const hasMultiple = slideCount > 1;
+  const contentAspectRatio = useGalleryAspect(slides);
 
   const currentLabel = preview && index === 0 ? (previewLabel ?? "Overview") : slides[index - (preview ? 1 : 0)]?.label ?? "";
 
   useEffect(() => {
-    slides.forEach(({ src }) => {
-      const img = new Image();
-      img.src = src;
-    });
-    if (preview?.thumb) {
-      const img = new Image();
-      img.src = preview.thumb;
-    }
+    slides.forEach(({ src }) => measureSlideAspect(src));
+    if (preview?.thumb) measureSlideAspect(preview.thumb);
   }, [slides, preview]);
 
   function goPrev(e: React.MouseEvent) {
@@ -481,7 +523,7 @@ function ScreenshotCarousel({
 
   return (
     <div>
-      <BrowserPreview url={url} alt={alt} featured={featured}>
+      <BrowserPreview url={url} alt={alt} featured={featured} contentAspectRatio={contentAspectRatio}>
         {preview && (
           <div
             className={`absolute inset-0 transition-opacity duration-200 ${index === 0 ? "opacity-100" : "opacity-0 pointer-events-none"}`}
@@ -497,16 +539,22 @@ function ScreenshotCarousel({
         )}
         {slides.map((s, i) => {
           const slideIndex = i + (preview ? 1 : 0);
+          const visible = slideIndex === index;
           return (
-            <img
+            <div
               key={s.src}
-              src={s.src}
-              alt={slideIndex === index ? `${alt}: ${s.label}` : ""}
-              aria-hidden={slideIndex !== index}
-              className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-200 ${slideIndex === index ? "opacity-100" : "opacity-0"}`}
-              loading="eager"
-              decoding="async"
-            />
+              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              aria-hidden={!visible}
+            >
+              <img
+                src={s.src}
+                alt={visible ? `${alt}: ${s.label}` : ""}
+                className="block max-w-full max-h-full w-auto h-auto"
+                loading="eager"
+                decoding="async"
+                draggable={false}
+              />
+            </div>
           );
         })}
       </BrowserPreview>
@@ -553,17 +601,50 @@ function ScreenshotCarousel({
   );
 }
 
+function ModalHeroImage({ work, typeLabel }: { work: WorkItem; typeLabel: string }) {
+  const slides = work.gallery ?? [{ src: work.img, label: work.title }];
+  const contentAspectRatio = useGalleryAspect(slides);
+
+  return (
+    <div
+      className="relative bg-[#f4f4f5] flex items-center justify-center"
+      style={{ aspectRatio: `${contentAspectRatio} / 1` }}
+    >
+      <img
+        src={work.img}
+        alt={work.title}
+        className="block max-w-full max-h-full w-auto h-auto opacity-90"
+        draggable={false}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
+      <span
+        className="absolute bottom-4 left-6 text-primary"
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", letterSpacing: "0.1em" }}
+      >
+        {typeLabel}
+      </span>
+    </div>
+  );
+}
+
 function WorkCard({ work, typeLabel, onClick }: { work: WorkItem; typeLabel: string; onClick: () => void }) {
+  const slides = work.gallery ?? [{ src: work.img, label: work.title }];
+  const contentAspectRatio = useGalleryAspect(slides);
+
   return (
     <button
       onClick={onClick}
       className="bg-background group overflow-hidden flex flex-col text-left cursor-pointer border border-border hover:border-muted-foreground/40 transition-colors"
     >
-      <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "16/10" }}>
+      <div
+        className="relative bg-[#f4f4f5] flex items-center justify-center"
+        style={{ aspectRatio: `${contentAspectRatio} / 1` }}
+      >
         <img
           src={work.img}
           alt={work.title}
-          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-[1.02] transition-all duration-500"
+          className="block max-w-full max-h-full w-auto h-auto opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+          draggable={false}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
         <span
@@ -676,7 +757,7 @@ function FeaturedWorkCard({
             </span>
           </div>
           <div
-            className={`order-1 group-hover:scale-[1.015] transition-transform duration-500 ${reversed ? "lg:order-1" : "lg:order-2"}`}
+            className={`order-1 ${reversed ? "lg:order-1" : "lg:order-2"}`}
             onClick={(e) => e.stopPropagation()}
           >
             <ScreenshotCarousel
@@ -881,10 +962,7 @@ export default function App() {
   useEffect(() => {
     works.forEach((work) => {
       const sources = work.gallery?.map((g) => g.src) ?? [work.img];
-      sources.forEach((src) => {
-        const img = new Image();
-        img.src = src;
-      });
+      sources.forEach((src) => measureSlideAspect(src));
     });
   }, [works]);
 
@@ -1348,20 +1426,7 @@ export default function App() {
                       />
                     </div>
                   ) : (
-                    <div className="relative bg-muted" style={{ aspectRatio: "16/7" }}>
-                      <img
-                        src={selectedWork.img}
-                        alt={selectedWork.title}
-                        className="w-full h-full object-cover opacity-80"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                      <span
-                        className="absolute bottom-4 left-6 text-primary"
-                        style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", letterSpacing: "0.1em" }}
-                      >
-                        {workTypeLabel(lang, selectedWork.type)}
-                      </span>
-                    </div>
+                    <ModalHeroImage work={selectedWork} typeLabel={workTypeLabel(lang, selectedWork.type)} />
                   )}
                   <Dialog.Close
                     className="absolute top-4 right-4 z-10 w-9 h-9 border border-border bg-background/80 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary transition-colors"

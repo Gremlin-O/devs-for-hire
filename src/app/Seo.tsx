@@ -62,7 +62,7 @@ export function Seo({ lang }: { lang: Lang }) {
     upsertMeta("name", "robots", "index, follow");
     upsertLink("canonical", canonical);
     upsertLink("icon", siteUrl ? `${siteUrl}/favicon.ico` : "/favicon.ico", { sizes: "48x48" });
-    upsertLink("icon", siteUrl ? `${siteUrl}/images/Logo-blue.svg` : "/images/Logo-blue.svg", {
+    upsertLink("icon", siteUrl ? `${siteUrl}/favicon.svg` : "/favicon.svg", {
       type: "image/svg+xml",
     });
     upsertLink("icon", faviconUrl, { type: "image/png", sizes: "512x512" });
