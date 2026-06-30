@@ -52,7 +52,7 @@ export function Seo({ lang }: { lang: Lang }) {
     const seo = seoConfig[lang];
     const siteUrl = (import.meta.env.VITE_SITE_URL || "").replace(/\/$/, "");
     const canonical = siteUrl || window.location.href.split("#")[0];
-    const faviconUrl = siteUrl ? `${siteUrl}/favicon.png` : "/favicon.png";
+    const faviconUrl = siteUrl ? `${siteUrl}/favicon-192.png` : "/favicon-192.png";
 
     document.documentElement.lang = lang;
     document.title = seo.title;
@@ -61,11 +61,6 @@ export function Seo({ lang }: { lang: Lang }) {
     upsertMeta("name", "keywords", seo.keywords);
     upsertMeta("name", "robots", "index, follow");
     upsertLink("canonical", canonical);
-    upsertLink("icon", siteUrl ? `${siteUrl}/favicon.ico` : "/favicon.ico", { sizes: "48x48" });
-    upsertLink("icon", siteUrl ? `${siteUrl}/favicon.svg` : "/favicon.svg", {
-      type: "image/svg+xml",
-    });
-    upsertLink("icon", faviconUrl, { type: "image/png", sizes: "512x512" });
 
     upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:title", seo.title);
@@ -73,8 +68,8 @@ export function Seo({ lang }: { lang: Lang }) {
     upsertMeta("property", "og:locale", lang === "ru" ? "ru_RU" : "en_US");
     upsertMeta("property", "og:url", canonical);
     upsertMeta("property", "og:image", faviconUrl);
-    upsertMeta("property", "og:image:width", "512");
-    upsertMeta("property", "og:image:height", "512");
+    upsertMeta("property", "og:image:width", "192");
+    upsertMeta("property", "og:image:height", "192");
 
     upsertMeta("name", "twitter:card", "summary");
     upsertMeta("name", "twitter:title", seo.title);

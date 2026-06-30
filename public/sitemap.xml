@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-  <!-- Замените example.com на ваш домен или задайте VITE_SITE_URL при деплое -->
-    <loc>https://example.com/</loc>
+    <loc>https://devs-for-hire.ru/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
